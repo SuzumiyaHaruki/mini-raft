@@ -9,6 +9,10 @@ system_boundary:
     Analyze the Mini Raft protocol core in this repository. Real networking,
     durable storage, and application process behavior are outside the boundary.
 
+transform_capabilities:
+  - message_capture
+  - message_injection
+
 build:
   command: go test -run '^$' ./...
 

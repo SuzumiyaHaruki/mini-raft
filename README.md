@@ -43,4 +43,6 @@ After a successful transformation, the tagged tests validate:
   its recorded target through the normal protocol handler.
 
 The included `consensus-seam.project.yaml` can be passed directly to the
-ConsensusSeam CLI once that package is installed.
+ConsensusSeam CLI once that package is installed. Its first smoke experiment is
+intentionally scoped to `message_capture` and `message_injection`; Agent 1 still
+reports all other capabilities, but Agent 2 does not transform randomness yet.
