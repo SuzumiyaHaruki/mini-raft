@@ -1,0 +1,53 @@
+name: mini-raft
+language: go
+protocol: raft
+repository: .
+
+system_boundary:
+  kind: protocol_library
+  description: >
+    Analyze the Mini Raft protocol core in this repository. Real networking,
+    durable storage, and application process behavior are outside the boundary.
+
+build:
+  command: go test -run '^$' ./...
+
+test:
+  command: go test ./...
+
+capability_checks:
+  - name: MC1 capture
+    capability: message_capture
+    command: go test -tags consensusseam ./acceptance -run '^TestMC1Capture$' -count=1
+    failure_code: MESSAGE_CAPTURE_FAILED
+  - name: MC2 suppression
+    capability: message_capture
+    command: go test -tags consensusseam ./acceptance -run '^TestMC2Suppression$' -count=1
+    failure_code: MESSAGE_SUPPRESSION_FAILED
+  - name: MC3 exact injection
+    capability: message_injection
+    command: go test -tags consensusseam ./acceptance -run '^TestMC3ExactInjection$' -count=1
+    failure_code: MESSAGE_INJECTION_FAILED
+
+llm:
+  analyzer:
+    model: deepseek-v4-flash
+    thinking: enabled
+    reasoning_effort: max
+    max_tokens: 32768
+  transformer:
+    model: deepseek-v4-flash
+    thinking: enabled
+    reasoning_effort: max
+    max_tokens: 32768
+  reviewer:
+    model: deepseek-v4-pro
+    thinking: enabled
+    reasoning_effort: high
+    max_tokens: 32768
+
+working_directory: .
+
+limits:
+  agent1_reanalysis_rounds: 2
+  agent2_patch_rounds: 3
