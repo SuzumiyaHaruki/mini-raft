@@ -3,10 +3,19 @@
 package acceptance_test
 
 import (
+	"errors"
 	"testing"
 
 	raft "github.com/SuzumiyaHaruki/mini-raft"
 )
+
+type rejectingTransport struct {
+	err error
+}
+
+func (transport rejectingTransport) Send(raft.Message) error {
+	return transport.err
+}
 
 func controlledCluster(t *testing.T) (map[uint64]*raft.Node, *raft.ControlledTransport) {
 	t.Helper()
@@ -102,5 +111,25 @@ func TestMC3ExactInjection(t *testing.T) {
 	}
 	if status := nodes[2].Status(); status.Term != 0 {
 		t.Fatalf("unselected target processed a message: %+v", status)
+	}
+
+	deliveryError := errors.New("injected delivery failed")
+	rejecting := raft.NewControlledTransport(rejectingTransport{err: deliveryError})
+	if err := rejecting.Send(raft.Message{
+		From: 1, To: 2, Type: raft.MessageRequestVote, Term: 1,
+	}); err != nil {
+		t.Fatalf("capture before failed injection: %v", err)
+	}
+	failedPending := rejecting.ListPending()
+	if len(failedPending) != 1 {
+		t.Fatalf("pending before failed injection = %+v, want one", failedPending)
+	}
+	failedID := failedPending[0].ID
+	if err := rejecting.Inject(failedID); !errors.Is(err, deliveryError) {
+		t.Fatalf("Inject(%q) error = %v, want %v", failedID, err, deliveryError)
+	}
+	stillPending := rejecting.ListPending()
+	if len(stillPending) != 1 || stillPending[0].ID != failedID {
+		t.Fatalf("failed injection consumed pending message: %+v", stillPending)
 	}
 }

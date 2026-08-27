@@ -40,7 +40,8 @@ After a successful transformation, the tagged tests validate:
 - MC1: outbound messages are captured;
 - MC2: captured messages do not continue through the original transport;
 - MC3: injecting one selected ID consumes only that message and delivers it to
-  its recorded target through the normal protocol handler.
+  its recorded target through the normal protocol handler; a failed delivery
+  keeps the selected message pending.
 
 The included `consensus-seam.project.yaml` can be passed directly to the
 ConsensusSeam CLI once that package is installed. Its first smoke experiment is
